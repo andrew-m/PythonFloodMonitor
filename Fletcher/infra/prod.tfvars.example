@@ -1,0 +1,17 @@
+aws_region = "REPLACE_ME_AWS_REGION"
+
+# Existing bucket to write into
+bucket_name = "REPLACE_ME_EXISTING_BUCKET_NAME"
+
+# OPTIONAL: S3 "prefix" is just part of the object key name (like a folder path).
+# You do not need to configure it on the bucket. Leave empty to write to the bucket root.
+bucket_key_prefix = ""
+
+# Make environment-specific to avoid collisions when you add more envs later
+lambda_function_name = "fletcher-walking-skeleton-prod"
+
+tags = {
+  environment = "prod"
+  project     = "PythonFloodMonitor"
+  component   = "Fletcher"
+}

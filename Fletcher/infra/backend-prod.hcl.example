@@ -1,0 +1,5 @@
+region         = "REPLACE_ME_AWS_REGION"
+bucket         = "replace-me-tf-state-bucket"
+dynamodb_table = "REPLACE_ME_TF_LOCK_TABLE"
+key            = "fletcher/prod/terraform.tfstate"
+encrypt        = true

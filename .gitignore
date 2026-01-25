@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Terraform variable files (often contain env-specific values)
+*.tfvars
+*.tfvars.json
+
+# Terraform local state (if you later choose local state)
+.terraform/
+**/.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+crash.log
+crash.*.log
+
+# Terraform plan files
+*.tfplan
