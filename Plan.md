@@ -17,6 +17,13 @@ To support this, inky-pico-display will be tolerant, ignoring extra data it is n
 
 We may use branches for Experiments and Spikes, where we explore how to solve a problem, such as efficient data transfer between the Data Fetcher and the inky-pico-display. Some of these experiments can be done locally on my laptop with a connected raspberry pi pico and waveshare e-ink display. Others may require AWS and deploying the lambda function to test.
 
+
+### End to end, Hello World, walking Skeleton!
+
+Before we build much (any) real functionality. We'll build a walking skeleton that we can deploy to AWS, that just returns a hello world message and the local time. We'll build a corresponding Pinky to fetch that message from a URL and display that message on the e-ink display.
+
+This will prove out our ability to define AWS infra-as-code, build, test and deploy our python code to AWS, and fetch and display data on the e-ink display.
+
 ### Fletcher - Data Fetcher.
 
 Fletcher will be written in python, to run in an AWS lambda function or locally on a Macbook (or any regular computer, but a Mac's what I have).
