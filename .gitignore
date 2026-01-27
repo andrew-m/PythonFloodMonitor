@@ -16,3 +16,6 @@ crash.*.log
 
 # Terraform plan files
 *.tfplan
+
+# AWS CLI output files
+out.json
