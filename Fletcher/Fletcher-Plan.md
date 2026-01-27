@@ -16,3 +16,5 @@ Eventually (not yet) Fletcher will:
 
 
 ## Step 1,Walking Skeleton
+
+We now have a walking skeleton of a lambda function that writes a json file to an S3 bucket. We'll return once we have a Pinky function to read it.
