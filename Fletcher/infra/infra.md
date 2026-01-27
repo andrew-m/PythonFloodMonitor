@@ -9,6 +9,8 @@ Run these commands in `Fletcher/infra`.
 ### Terraform
 
 - `terraform init -reconfigure -backend-config=backend-prod.hcl`
+Run that only if you have never run terraform before, or if you have deleted your terraform state bucket.
+
 - `terraform plan -var-file=prod.tfvars -out=prod.tfplan`
 - `terraform apply prod.tfplan`
 

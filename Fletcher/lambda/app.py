@@ -17,7 +17,7 @@ def handler(event, context):
         "utc_time": now.isoformat(),
     }
 
-    key = f"{key_prefix}walking-skeleton/{now.strftime('%Y%m%dT%H%M%SZ')}.json"
+    key = f"{key_prefix}walking-skeleton/latest.json"
 
     s3 = boto3.client("s3")
     s3.put_object(
