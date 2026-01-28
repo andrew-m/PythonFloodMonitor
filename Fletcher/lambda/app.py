@@ -5,6 +5,7 @@ import boto3
 
 import river_config
 import river_data
+import render_image
 
 
 def handler(event, context):
@@ -15,14 +16,23 @@ def handler(event, context):
 
     payload = river_data.build_river_level_document(river_config.STATIONS, threshold=200)
 
-    key = f"{key_prefix}walking-skeleton/latest.json"
+    json_key = f"{key_prefix}walking-skeleton/latest.json"
+    png_key = f"{key_prefix}walking-skeleton/latest.png"
 
     s3 = boto3.client("s3")
     s3.put_object(
         Bucket=bucket_name,
-        Key=key,
+        Key=json_key,
         Body=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
         ContentType="application/json",
+    )
+
+    png_bytes = render_image.render_latest_png(payload)
+    s3.put_object(
+        Bucket=bucket_name,
+        Key=png_key,
+        Body=png_bytes,
+        ContentType="image/png",
     )
 
     return {
@@ -31,7 +41,8 @@ def handler(event, context):
             {
                 "wrote": {
                     "bucket": bucket_name,
-                    "key": key,
+                    "json_key": json_key,
+                    "png_key": png_key,
                 },
                 **payload,
             }

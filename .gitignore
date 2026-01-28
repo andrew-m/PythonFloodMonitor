@@ -19,3 +19,7 @@ crash.*.log
 
 # AWS CLI output files
 out.json
+
+# Lambda layer build artifacts
+Fletcher/infra/layers/pillow/python/
+Fletcher/infra/build/

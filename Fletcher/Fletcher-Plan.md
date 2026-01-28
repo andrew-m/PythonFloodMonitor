@@ -44,3 +44,13 @@ We then Repeat for the second monitoring station, include as a second object in 
 and Write the json file to an S3 bucket (or local file for testing).
 
 The main Lambda function will then call this new Python file, fetching data from the URL, reprocessing it, and writing this JSON to the S3 bucket (instead of Hello World).
+
+## Step3, let's generate an image!
+
+OK - now we get to the exciting stuff. As well as generating the JSON file and uploading it to S3, let's also generate an image and upload that too.
+
+As always, encapsulation is king, so a new Python file is in order. We'll pass the JSON data (not the file, we still have it in memory, so we'll just pass it in).
+
+Then we'll generate a 400x300 pixel .png image. White background with black text. And we'll include time, formatted to be human readible, from the top of the JSON data. That's enough for now.
+
+We'll save this new png file to the S3 bucket (or local file for testing) and call it something like "latest.png"

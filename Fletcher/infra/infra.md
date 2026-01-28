@@ -19,6 +19,18 @@ Run that only if you have never run terraform before, or if you have deleted you
 - `aws lambda invoke --region eu-west-1 --function-name fletcher-walking-skeleton-prod out.json`
 - `cat out.json`
 
+### Build/update the Pillow layer (only when dependencies change)
+
+The Lambda generates `walking-skeleton/latest.png` using Pillow, provided via a Lambda Layer.
+
+In `Fletcher/infra`, build the layer contents into `layers/pillow/python/`:
+
+- `python3 -m pip install --upgrade pip`
+- `rm -rf layers/pillow/python/*`
+- `python3 -m pip install --platform manylinux2014_aarch64 --only-binary=:all: --python-version 3.12 --target layers/pillow/python -r layers/pillow/requirements.txt`
+
+Then deploy normally with Terraform.
+
 ## What gets created
 
 - `aws_lambda_function`: `fletcher-walking-skeleton-*`
@@ -58,6 +70,11 @@ After invoking the Lambda, it should write a JSON object into your bucket under:
 
 - `<bucket_key_prefix>/walking-skeleton/` (if a prefix is set)
 - `walking-skeleton/` (if prefix is empty)
+
+It also writes a PNG image at:
+
+- `<bucket_key_prefix>/walking-skeleton/latest.png` (if a prefix is set)
+- `walking-skeleton/latest.png` (if prefix is empty)
 
 ## Bootstrap remote state (one-time)
 

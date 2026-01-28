@@ -8,6 +8,8 @@ locals {
   s3_object_arn_prefix = var.bucket_key_prefix == "" ? "arn:aws:s3:::${var.bucket_name}/*" : "arn:aws:s3:::${var.bucket_name}/${local.key_prefix_normalized}*"
 
   lambda_zip_path = "${path.module}/build/lambda.zip"
+
+  pillow_layer_zip_path = "${path.module}/build/pillow-layer.zip"
 }
 
 data "archive_file" "lambda_zip" {
@@ -15,6 +17,22 @@ data "archive_file" "lambda_zip" {
   output_path = local.lambda_zip_path
 
   source_dir = "${path.module}/../lambda"
+}
+
+data "archive_file" "pillow_layer_zip" {
+  type        = "zip"
+  output_path = local.pillow_layer_zip_path
+
+  source_dir = "${path.module}/layers/pillow"
+}
+
+resource "aws_lambda_layer_version" "pillow" {
+  layer_name          = "${var.lambda_function_name}-pillow"
+  compatible_runtimes = ["python3.12"]
+  compatible_architectures = ["arm64"]
+
+  filename         = data.archive_file.pillow_layer_zip.output_path
+  source_code_hash = data.archive_file.pillow_layer_zip.output_base64sha256
 }
 
 resource "aws_cloudwatch_log_group" "lambda" {
@@ -78,6 +96,12 @@ resource "aws_lambda_function" "fletcher" {
   handler          = "app.handler"
   filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+
+  architectures = ["arm64"]
+
+  layers = [
+    aws_lambda_layer_version.pillow.arn
+  ]
 
   timeout     = 10
   memory_size = 128

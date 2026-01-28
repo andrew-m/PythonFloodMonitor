@@ -19,6 +19,10 @@ We may use branches for Experiments and Spikes, where we explore how to solve a 
 
 We will minimise imported dependencies. Preferring core Python libraries or code we have written ourselves. You will always check and ask permission before importing a new library that is not core python.
 
+TODO: Add dependency scanning for third-party libraries (e.g. Lambda layers and any vendored deps).
+Exceptions noted so far:
+Boto3 and botocore for AWS, as it's included in AWS lambdas anyway, and is well known, supported and trusted.
+
 
 ### End to end, Hello World, walking Skeleton!
 
