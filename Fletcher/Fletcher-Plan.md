@@ -61,9 +61,12 @@ We'll label beneath the left corner of the X axis with the time of the first rec
 
 Finally we'll plot each of the 200 datapoints by drawing a vertical line from the X axis up to the height of the data point. The data points are in meters, and will need to be scaled to fit in the 100pixels of height relative to the "y_axis_top_m" value from the config for that measurement station. Conveniently, because we have a 100 pixel graph height, this is the same as if we were calculating the height as a percentage of the "y_axis_top_m" value.
 
-Each graph will have Horizontal lines at significant heights, such as the "top of normal range" and the "highest recorded" values. These will extend 1 pixels to the right of the graph (ie 106 pixels long I think) and be labeled with their name and height in meters.
+Each graph will have Horizontal lines at significant heights, such as the "top of normal range" and the "highest recorded" values. These will extend 15 pixels to the right of the graph (ie 111 pixels long I think) and be labeled with their height in meters, then below that the name of the significant line. The significant line labels need to be a bit to the right (maybe another 5 pixels) so they don't crash into the top-of-y-axis label.
 
 The graph should be about 10 pixels off the left hand edge.
+
+Finally, we should display the current river height (well, latest reading) in large digits to the right of the graphs. These should be to 2 decimal places, and align (ie) the decimal points should be in the same vertical position. It's unlikely there will ever be a reading greater that 9.99m, so space is only needed for 3 digits.
+A short version of the station name should be displayed above the height, eg "Marlow" or "Cookham". The numbers should be pretty much as big as will fit. The simple station name should be bigger than the normal small text, but not as big as the numbers.
 
 We'll save this new png file to the S3 bucket (or local file for testing) and call it something like "latest.png"
 
