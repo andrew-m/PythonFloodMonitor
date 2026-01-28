@@ -14,10 +14,7 @@ data "archive_file" "lambda_zip" {
   type        = "zip"
   output_path = local.lambda_zip_path
 
-  source {
-    content  = file("${path.module}/../lambda/app.py")
-    filename = "app.py"
-  }
+  source_dir = "${path.module}/../lambda"
 }
 
 resource "aws_cloudwatch_log_group" "lambda" {

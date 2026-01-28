@@ -1,8 +1,10 @@
 import json
 import os
-from datetime import datetime, timezone
 
 import boto3
+
+import river_config
+import river_data
 
 
 def handler(event, context):
@@ -11,11 +13,7 @@ def handler(event, context):
     if key_prefix and not key_prefix.endswith("/"):
         key_prefix = f"{key_prefix}/"
 
-    now = datetime.now(timezone.utc)
-    payload = {
-        "message": "hello world",
-        "utc_time": now.isoformat(),
-    }
+    payload = river_data.build_river_level_document(river_config.STATIONS, threshold=200)
 
     key = f"{key_prefix}walking-skeleton/latest.json"
 
