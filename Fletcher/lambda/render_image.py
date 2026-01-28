@@ -27,6 +27,15 @@ def _load_large_font(size: int = 40):
         return ImageFont.load_default()
 
 
+def _load_label_font(size: int = 16):
+    try:
+        here = os.path.dirname(__file__)
+        font_path = os.path.join(here, "fonts", "Silkscreen-Regular.ttf")
+        return ImageFont.truetype(font_path, size)
+    except Exception:
+        return ImageFont.load_default()
+
+
 def _draw_large_height(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont", value_m: float, decimal_x: int, y: int):
     s = f"{float(value_m):.2f}"
     if "." in s:
@@ -65,6 +74,12 @@ def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont"
     base_y = top_y + graph_height
     x_axis_end = x0 + graph_width
 
+    old_fontmode = getattr(draw, "fontmode", None)
+    try:
+        draw.fontmode = "1"
+    except Exception:
+        pass
+
     draw.text((x0, title_y), str(station.get("name", "")), fill="black", font=font)
 
     draw.line([(x0, base_y), (x_axis_end, base_y)], fill="black", width=1)
@@ -100,6 +115,12 @@ def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont"
         draw_ref_line(top_of_normal_range_m, "Normal")
         draw_ref_line(highest_ever_recorded_m, "Record")
 
+    try:
+        if old_fontmode is not None:
+            draw.fontmode = old_fontmode
+    except Exception:
+        pass
+
     if isinstance(y_axis_top_m, (int, float)) and y_axis_top_m > 0 and len(heights) == 200:
         for i, h in enumerate(heights):
             x = x0 + 1 + i
@@ -124,10 +145,10 @@ def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont"
 def render_latest_png(river_doc: dict) -> bytes:
     img = Image.new("RGB", (400, 300), "white")
     draw = ImageDraw.Draw(img)
-    font = ImageFont.load_default()
+    label_font = _load_label_font(8)
     large_font = _load_large_font(70)
     station_font = _load_large_font(26)
-    small_font = _load_large_font(14)
+    small_font = _load_label_font(8)
 
     utc_time = river_doc.get("utc_time", "")
     try:
@@ -153,8 +174,20 @@ def render_latest_png(river_doc: dict) -> bytes:
     x_time = 400 - right_margin - time_w
     x_updated_date = 400 - right_margin - updated_date_w
 
+    old_fontmode = getattr(draw, "fontmode", None)
+    try:
+        draw.fontmode = "1"
+    except Exception:
+        pass
+
     draw.text((x_updated_date, 1), updated_date_label, fill="black", font=small_font)
     draw.text((x_time, 15), time_label, fill="black", font=station_font)
+
+    try:
+        if old_fontmode is not None:
+            draw.fontmode = old_fontmode
+    except Exception:
+        pass
 
     stations = river_doc.get("stations") or []
     x0 = 10
@@ -163,23 +196,49 @@ def render_latest_png(river_doc: dict) -> bytes:
     decimal_x = 310
 
     if len(stations) >= 1:
-        used_h = _draw_station_graph(draw, font, stations[0], x0=x0, y0=y0)
+        used_h = _draw_station_graph(draw, label_font, stations[0], x0=x0, y0=y0)
         heights_0 = stations[0].get("heights_m") or []
         if heights_0:
             station_name_0 = str(stations[0].get("name", "")).strip()
             short_0 = (station_name_0.split() or [""])[0]
+
+            old_fontmode = getattr(draw, "fontmode", None)
+            try:
+                draw.fontmode = "1"
+            except Exception:
+                pass
+
             draw.text((decimal_x - 25, y0 + 28), short_0, fill="black", font=station_font)
             _draw_large_height(draw, large_font, float(heights_0[-1]), decimal_x=decimal_x, y=y0 + 48)
+
+            try:
+                if old_fontmode is not None:
+                    draw.fontmode = old_fontmode
+            except Exception:
+                pass
         y0 = y0 + used_h + gap
 
     if len(stations) >= 2:
-        _draw_station_graph(draw, font, stations[1], x0=x0, y0=y0)
+        _draw_station_graph(draw, label_font, stations[1], x0=x0, y0=y0)
         heights_1 = stations[1].get("heights_m") or []
         if heights_1:
             station_name_1 = str(stations[1].get("name", "")).strip()
             short_1 = (station_name_1.split() or [""])[0]
+
+            old_fontmode = getattr(draw, "fontmode", None)
+            try:
+                draw.fontmode = "1"
+            except Exception:
+                pass
+
             draw.text((decimal_x - 25, y0 + 28), short_1, fill="black", font=station_font)
             _draw_large_height(draw, large_font, float(heights_1[-1]), decimal_x=decimal_x, y=y0 + 48)
+
+            try:
+                if old_fontmode is not None:
+                    draw.fontmode = old_fontmode
+            except Exception:
+                pass
 
     out = io.BytesIO()
     img.save(out, format="PNG")
