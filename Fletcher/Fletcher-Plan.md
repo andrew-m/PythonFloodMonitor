@@ -45,12 +45,23 @@ and Write the json file to an S3 bucket (or local file for testing).
 
 The main Lambda function will then call this new Python file, fetching data from the URL, reprocessing it, and writing this JSON to the S3 bucket (instead of Hello World).
 
-## Step3, let's generate an image!
+## Step 3, let's generate an image!
 
 OK - now we get to the exciting stuff. As well as generating the JSON file and uploading it to S3, let's also generate an image and upload that too.
 
 As always, encapsulation is king, so a new Python file is in order. We'll pass the JSON data (not the file, we still have it in memory, so we'll just pass it in).
 
-Then we'll generate a 400x300 pixel .png image. White background with black text. And we'll include time, formatted to be human readible, from the top of the JSON data. That's enough for now.
+Then we'll generate a 400x300 pixel .png image. White background with black text. And we'll include time, formatted to be human readible, from the top of the JSON data. 
+
+Now, let's generate the first simple graph of the river levels for Marlow Downstream only. Create a function that draws the graph so we can re-use it for Cookham later. No graphing libraries are needed, we'll just Draw straight lines that are a single pixel wide. First we'll draw a horizontal X axis that is 200 pixels long. And a vertical Y axis that is 100 pixels high (or 101 as it will overlap with the X axis, and we need 100 Pixels of height for the data). 
+
+We'll label beneath the left corner of the X axis with the time of the first record, and beneath the right corner with the time of the last record. We'll label off the right hand side of the Y axis with the height in meters, 0 at the bottom right, and the top of the y-axis at the top right.
+
+Finally we'll plot each of the 200 datapoints by drawing a vertical line from the X axis up to the height of the data point. The data points are in meters, and will need to be scaled to fit in the 100pixels of height relative to the "y_axis_top_m" value from the config for that measurement station. Conveniently, because we have a 100 pixel graph height, this is the same as if we were calculating the height as a percentage of the "y_axis_top_m" value.
+
+The graph should be about 10 pixels off the left hand edge.
 
 We'll save this new png file to the S3 bucket (or local file for testing) and call it something like "latest.png"
+
+## Step 3 and a half! Add a local run option for testing.
+Let's also generate a second root/main python script in the root of /Fletcher called "generate_image.py" that will run locally, fetch data from the web, and write the JSON and PNG images out locally. This is equivalent to /Fletcher/Lambda/app.py, which still needs to work of course.
