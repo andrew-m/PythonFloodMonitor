@@ -124,7 +124,7 @@ def render_latest_png(river_doc: dict) -> bytes:
     img = Image.new("RGB", (400, 300), "white")
     draw = ImageDraw.Draw(img)
     font = ImageFont.load_default()
-    large_font = _load_large_font(48)
+    large_font = _load_large_font(70)
     station_font = _load_large_font(26)
 
     utc_time = river_doc.get("utc_time", "")
@@ -140,7 +140,7 @@ def render_latest_png(river_doc: dict) -> bytes:
     x0 = 10
     y0 = 20
     gap = 15
-    decimal_x = 330
+    decimal_x = 310
 
     if len(stations) >= 1:
         used_h = _draw_station_graph(draw, font, stations[0], x0=x0, y0=y0)
@@ -148,8 +148,8 @@ def render_latest_png(river_doc: dict) -> bytes:
         if heights_0:
             station_name_0 = str(stations[0].get("name", "")).strip()
             short_0 = (station_name_0.split() or [""])[0]
-            draw.text((decimal_x - 35, y0 + 32), short_0, fill="black", font=station_font)
-            _draw_large_height(draw, large_font, float(heights_0[-1]), decimal_x=decimal_x, y=y0 + 52)
+            draw.text((decimal_x - 25, y0 + 28), short_0, fill="black", font=station_font)
+            _draw_large_height(draw, large_font, float(heights_0[-1]), decimal_x=decimal_x, y=y0 + 48)
         y0 = y0 + used_h + gap
 
     if len(stations) >= 2:
@@ -158,8 +158,8 @@ def render_latest_png(river_doc: dict) -> bytes:
         if heights_1:
             station_name_1 = str(stations[1].get("name", "")).strip()
             short_1 = (station_name_1.split() or [""])[0]
-            draw.text((decimal_x - 35, y0 + 32), short_1, fill="black", font=station_font)
-            _draw_large_height(draw, large_font, float(heights_1[-1]), decimal_x=decimal_x, y=y0 + 52)
+            draw.text((decimal_x - 25, y0 + 28), short_1, fill="black", font=station_font)
+            _draw_large_height(draw, large_font, float(heights_1[-1]), decimal_x=decimal_x, y=y0 + 48)
 
     out = io.BytesIO()
     img.save(out, format="PNG")
