@@ -55,18 +55,20 @@ Then we'll generate a 400x300 pixel .png image. White background with black text
 
 Now we'll plot two graphs, one for each monitoring station. Marlow above, Cookham below, both 10 px off from the left hand edge of the image.
 
-This is how we create a graph for each monitoring station. Create a function that draws the graph so we can re-use it, taking arguments for the position on the image (x, y coordinates). No graphing libraries are needed, we'll just Draw straight lines that are a single pixel wide. First we'll draw a horizontal X axis that is 200 pixels long. And a vertical Y axis that is 100 pixels high (or 101 as it will overlap with the X axis, and we need 100 Pixels of height for the data). 
+This is how we create a graph for each monitoring station. Create a function that draws the graph so we can re-use it, taking arguments for the position on the image (x, y coordinates). No graphing libraries are needed, we'll just Draw straight lines that are a single pixel wide. First we'll draw a horizontal X axis that is 200 pixels long. And a vertical Y axis that is 100 pixels high (or 101 as it will overlap with the X axis, and we need 100 Pixels of height for the data). We'll draw a second vertical line on the right hand side of the Y axis (nothing at the top of the graph).
 
 We'll label beneath the left corner of the X axis with the time of the first record, and beneath the right corner with the time of the last record. We'll label off the right hand side of the Y axis with the height in meters, 0 at the bottom right, and the top of the y-axis at the top right.
 
-Finally we'll plot each of the 200 datapoints by drawing a vertical line from the X axis up to the height of the data point. The data points are in meters, and will need to be scaled to fit in the 100pixels of height relative to the "y_axis_top_m" value from the config for that measurement station. Conveniently, because we have a 100 pixel graph height, this is the same as if we were calculating the height as a percentage of the "y_axis_top_m" value.
+We'll plot each of the 200 datapoints by drawing a vertical line from the X axis up to the height of the data point. The data points are in meters, and will need to be scaled to fit in the 100pixels of height relative to the "y_axis_top_m" value from the config for that measurement station. Conveniently, because we have a 100 pixel graph height, this is the same as if we were calculating the height as a percentage of the "y_axis_top_m" value.
 
 Each graph will have Horizontal lines at significant heights, such as the "top of normal range" and the "highest recorded" values. These will extend 15 pixels to the right of the graph (ie 111 pixels long I think) and be labeled with their height in meters, then below that the name of the significant line. The significant line labels need to be a bit to the right (maybe another 5 pixels) so they don't crash into the top-of-y-axis label.
 
 The graph should be about 10 pixels off the left hand edge.
 
 Finally, we should display the current river height (well, latest reading) in large digits to the right of the graphs. These should be to 2 decimal places, and align (ie) the decimal points should be in the same vertical position. It's unlikely there will ever be a reading greater that 9.99m, so space is only needed for 3 digits.
-A short version of the station name should be displayed above the height, eg "Marlow" or "Cookham". The numbers should be pretty much as big as will fit. The simple station name should be bigger than the normal small text, but not as big as the numbers.
+A short version of the station name should be displayed above the height, eg "Marlow" or "Cookham". The numbers should be pretty much as big as will fit. The simple station name should be bigger than the normal small text, but not as big as the numbers. The current time should be displayed once in the top right corner of the image, the same size as the short station name, in 12 hour clock with AM and PM to the nearest minute only, eg "3:45 PM".
+
+In the top right corner, the text "Updated <date>" should appear in very small text above the time.
 
 We'll save this new png file to the S3 bucket (or local file for testing) and call it something like "latest.png"
 

@@ -69,6 +69,7 @@ def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont"
 
     draw.line([(x0, base_y), (x_axis_end, base_y)], fill="black", width=1)
     draw.line([(x0, base_y), (x0, top_y)], fill="black", width=1)
+    draw.line([(x_axis_end, base_y), (x_axis_end, top_y)], fill="black", width=1)
 
     first_label = _format_utc(first_ts)
     last_label = _format_utc(last_ts)
@@ -126,15 +127,34 @@ def render_latest_png(river_doc: dict) -> bytes:
     font = ImageFont.load_default()
     large_font = _load_large_font(70)
     station_font = _load_large_font(26)
+    small_font = _load_large_font(14)
 
     utc_time = river_doc.get("utc_time", "")
     try:
         dt = datetime.fromisoformat(utc_time.replace("Z", "+00:00"))
-        human_time = dt.strftime("%H:%M %a %d %b %Y")
+        time_label = dt.strftime("%I:%M %p").lstrip("0")
+        date_label = dt.strftime("%d %b %Y")
     except Exception:
-        human_time = str(utc_time)
+        time_label = str(utc_time)
+        date_label = ""
 
-    draw.text((10, 5), f"Updated: {human_time}", fill="black", font=font)
+    try:
+        time_w = draw.textlength(time_label, font=station_font)
+    except Exception:
+        time_w = station_font.getlength(time_label)
+
+    updated_date_label = f"Updated {date_label}".strip()
+    try:
+        updated_date_w = draw.textlength(updated_date_label, font=small_font)
+    except Exception:
+        updated_date_w = small_font.getlength(updated_date_label)
+
+    right_margin = 10
+    x_time = 400 - right_margin - time_w
+    x_updated_date = 400 - right_margin - updated_date_w
+
+    draw.text((x_updated_date, 1), updated_date_label, fill="black", font=small_font)
+    draw.text((x_time, 15), time_label, fill="black", font=station_font)
 
     stations = river_doc.get("stations") or []
     x0 = 10
