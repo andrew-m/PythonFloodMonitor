@@ -20,6 +20,10 @@ crash.*.log
 # AWS CLI output files
 out.json
 
+# Python virtual environments
+.venv/
+venv/
+
 # Lambda layer build artifacts
 Fletcher/infra/layers/pillow/python/
 Fletcher/infra/build/

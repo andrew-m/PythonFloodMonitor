@@ -31,6 +31,16 @@ In `Fletcher/infra`, build the layer contents into `layers/pillow/python/`:
 
 Then deploy normally with Terraform.
 
+## Local image generation (one-off / for iteration)
+
+If you want to generate `latest.json` and `latest.png` locally (without AWS), you can run:
+
+- `python3 -m venv .venv`
+- `source .venv/bin/activate`
+- `python -m pip install --upgrade pip`
+- `python -m pip install Pillow`
+- `python Fletcher/generate_image.py --out-dir /tmp/fletcher-out`
+
 ## What gets created
 
 - `aws_lambda_function`: `fletcher-walking-skeleton-*`

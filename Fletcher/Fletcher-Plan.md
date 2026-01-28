@@ -51,13 +51,17 @@ OK - now we get to the exciting stuff. As well as generating the JSON file and u
 
 As always, encapsulation is king, so a new Python file is in order. We'll pass the JSON data (not the file, we still have it in memory, so we'll just pass it in).
 
-Then we'll generate a 400x300 pixel .png image. White background with black text. And we'll include time, formatted to be human readible, from the top of the JSON data. 
+Then we'll generate a 400x300 pixel .png image. White background with black text. Very close to the top, we'll write "Updated" and the current time in a human readable format. Nothing else.
 
-Now, let's generate the first simple graph of the river levels for Marlow Downstream only. Create a function that draws the graph so we can re-use it for Cookham later. No graphing libraries are needed, we'll just Draw straight lines that are a single pixel wide. First we'll draw a horizontal X axis that is 200 pixels long. And a vertical Y axis that is 100 pixels high (or 101 as it will overlap with the X axis, and we need 100 Pixels of height for the data). 
+Now we'll plot two graphs, one for each monitoring station. Marlow above, Cookham below, both 10 px off from the left hand edge of the image.
+
+This is how we create a graph for each monitoring station. Create a function that draws the graph so we can re-use it, taking arguments for the position on the image (x, y coordinates). No graphing libraries are needed, we'll just Draw straight lines that are a single pixel wide. First we'll draw a horizontal X axis that is 200 pixels long. And a vertical Y axis that is 100 pixels high (or 101 as it will overlap with the X axis, and we need 100 Pixels of height for the data). 
 
 We'll label beneath the left corner of the X axis with the time of the first record, and beneath the right corner with the time of the last record. We'll label off the right hand side of the Y axis with the height in meters, 0 at the bottom right, and the top of the y-axis at the top right.
 
 Finally we'll plot each of the 200 datapoints by drawing a vertical line from the X axis up to the height of the data point. The data points are in meters, and will need to be scaled to fit in the 100pixels of height relative to the "y_axis_top_m" value from the config for that measurement station. Conveniently, because we have a 100 pixel graph height, this is the same as if we were calculating the height as a percentage of the "y_axis_top_m" value.
+
+Each graph will have Horizontal lines at significant heights, such as the "top of normal range" and the "highest recorded" values. These will extend 1 pixels to the right of the graph (ie 106 pixels long I think) and be labeled with their name and height in meters.
 
 The graph should be about 10 pixels off the left hand edge.
 
