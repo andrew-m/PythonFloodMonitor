@@ -157,7 +157,7 @@ def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont"
     return title_h + graph_height + label_h
 
 
-def render_latest_png(river_doc: dict) -> bytes:
+def _render_latest_image(river_doc: dict) -> "Image.Image":
     img = Image.new("RGB", (400, 300), "white")
     draw = ImageDraw.Draw(img)
     label_font = _load_label_font(8)
@@ -255,6 +255,36 @@ def render_latest_png(river_doc: dict) -> bytes:
             except Exception:
                 pass
 
+    return img
+
+
+def render_latest_png(river_doc: dict) -> bytes:
+    img = _render_latest_image(river_doc)
     out = io.BytesIO()
     img.save(out, format="PNG")
     return out.getvalue()
+
+
+def render_latest_mono_hlsb_black(river_doc: dict) -> bytes:
+    img = _render_latest_image(river_doc)
+    mono = img.convert("1", dither=Image.Dither.NONE)
+    width, height = mono.size
+    if width != 400 or height != 300:
+        raise ValueError(f"Expected 400x300 image, got {width}x{height}")
+
+    pixels = mono.load()
+    out = bytearray((width * height) // 8)
+
+    idx = 0
+    for y in range(height):
+        for x_byte in range(0, width, 8):
+            b = 0
+            for bit in range(8):
+                x = x_byte + bit
+                px = pixels[x, y]
+                if px:
+                    b |= 1 << bit
+            out[idx] = b
+            idx += 1
+
+    return bytes(out)

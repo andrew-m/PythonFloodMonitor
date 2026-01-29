@@ -76,3 +76,17 @@ We'll save this new png file to the S3 bucket (or local file for testing) and ca
 
 ## Step 3 and a half! Add a local run option for testing.
 Let's also generate a second root/main python script in the root of /Fletcher called "generate_image.py" that will run locally, fetch data from the web, and write the JSON and PNG images out locally. This is equivalent to /Fletcher/Lambda/app.py, which still needs to work of course.
+
+## Step 4, generate a raw framebuffer file.
+
+In addition to writing `latest.json` and `latest.png`, Fletcher will also write `latest.bin`.
+
+This file is intended to be consumed directly by Pinky, and maps straight into a MicroPython `framebuf.FrameBuffer(..., framebuf.MONO_HLSB)` for a 400x300 display.
+
+For now we only generate the black plane (no red channel), and the file is exactly `400 * 300 / 8 = 15000` bytes.
+
+Bit layout is MONO_HLSB:
+- bytes are row-major
+- each byte represents 8 horizontal pixels
+- within a byte, bit 0 is the left-most pixel in that 8-pixel group
+- value `1` is white, value `0` is black

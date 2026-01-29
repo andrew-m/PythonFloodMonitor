@@ -24,6 +24,7 @@ def main() -> int:
 
     json_path = os.path.join(out_dir, "latest.json")
     png_path = os.path.join(out_dir, "latest.png")
+    bin_path = os.path.join(out_dir, "latest.bin")
 
     with open(json_path, "wb") as f:
         f.write(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
@@ -32,8 +33,13 @@ def main() -> int:
     with open(png_path, "wb") as f:
         f.write(png_bytes)
 
+    bin_bytes = render_image.render_latest_mono_hlsb_black(payload)
+    with open(bin_path, "wb") as f:
+        f.write(bin_bytes)
+
     print(json_path)
     print(png_path)
+    print(bin_path)
     return 0
 
 
