@@ -31,13 +31,50 @@ We fixed this in `pinky_display.py` by using:
 - `imagered.text(..., 0xFF)` in `text_red()`
 
 
-## On startup - display some debugging information.
+## Step 2, load and display Fletcher's framebuffer data.
+
+Pinky fetches the pre-rendered framebuffer data from Fletcher and displays it on the e-ink panel.
+
+### Data source configuration
+
+`config.py` includes:
+- `FRAMEBUFFER_SOURCE` - either `"local"` or `"wifi"`
+- `LOCAL_FRAMEBUFFER_FILENAME` - filename for local testing (e.g. `"example_bw.bin"`)
+- `FLETCHER_LATEST_BIN_URL` - S3 URL for WiFi fetch
+
+### Local mode
+Loads the framebuffer bytes from a file on the Pico's filesystem. Useful for testing without network connectivity.
+
+### WiFi mode
+WiFi credentials are stored in `secrets.py` (gitignored):
+- `WIFI_SSID` - network name
+- `WIFI_PASSWORD` - network password
+
+A template `secrets.py.example` is provided in the repo.
+
+The `wifi_helper.py` module provides:
+- `connect_wifi(ssid, password, timeout_s=30)` - connects using `network.WLAN(network.STA_IF)`
+- `disconnect_wifi()` - disconnects and deactivates interface to save power
+
+When `FRAMEBUFFER_SOURCE = "wifi"`, Pinky:
+1. Connects to WiFi
+2. Fetches `FLETCHER_LATEST_BIN_URL` using `urequests.get()`
+3. Disconnects WiFi (power saving)
+4. Loads the 15000 bytes into the black framebuffer
+5. Displays the image
+
+### Framebuffer format
+Fletcher's `latest.bin` is exactly 15000 bytes (400×300÷8) in `MONO_HLSB` format, matching the Waveshare driver's black plane buffer. Pinky loads it directly via `set_black_framebuffer_bytes()` with no decoding needed.
+
+## Step 3, startup debug display.
 
 Bearing in mind the Waveshare display takes more than 15 seconds to update, it would still be useful to display some debugging information on startup.
-So, when main.py first runs, it should go about it's business as it does now, reading all the config files, desciding if it's going to use a local file or connect to the web. Even connecting to the web or reading that file.
-Then before it updates the screen with the bytes, it shoudl first display debug information as simple text to the screen (using the default framebuf routine and font is fine, I can find examples if needed). If there have been any errors, reading config, loading local files, connecting to wifi, or fetching the data, then those errors should be displayed. DO NOT DISPLAY THE WIFI PASSWORD, as that's obviously a secret. It is OK to display the wifi network SSID.
-This should be written to the display, and then a 60 second delay.
 
-Once the 60 second delay is over, and assuming there were no errors, display the actual data on the screen as normal.
-If there was an error, simply leave the display with the debug information.
+When `main.py` runs, it:
+1. Collects debug messages during config loading, WiFi connection, and data fetch
+2. Displays all debug messages as simple text on screen (using framebuffer's built-in `text()` method)
+3. Waits 60 seconds
+4. If successful: clears screen, displays the actual framebuffer image, waits 20 seconds, sleeps
+5. If error: leaves the debug info on screen and sleeps
 
+**Security**: WiFi password is never displayed (shown as `[set]`). SSID and other safe info is shown to aid debugging.

@@ -90,3 +90,16 @@ Bit layout is MONO_HLSB:
 - each byte represents 8 horizontal pixels
 - within a byte, bit 0 is the left-most pixel in that 8-pixel group
 - value `1` is white, value `0` is black
+
+**Important**: When packing pixels into bytes, we must reverse the bit order within each byte. For each 8-pixel horizontal group starting at x_byte, pixel at position `x_byte + bit` maps to bit position `7 - bit` in the output byte. This ensures bit 0 represents the leftmost pixel as MONO_HLSB requires.
+
+## Step 5, scheduled execution.
+
+Fletcher runs automatically on a schedule via AWS EventBridge (CloudWatch Events).
+
+The Lambda is triggered every 15 minutes using a `rate(15 minutes)` schedule expression. This ensures Pinky always has fresh data available (at most 15 minutes old) when it fetches from S3.
+
+The Terraform configuration includes:
+- `aws_cloudwatch_event_rule` with the schedule
+- `aws_cloudwatch_event_target` pointing to the Fletcher Lambda
+- `aws_lambda_permission` allowing EventBridge to invoke the function
