@@ -283,7 +283,7 @@ def render_latest_mono_hlsb_black(river_doc: dict) -> bytes:
                 x = x_byte + bit
                 px = pixels[x, y]
                 if px:
-                    b |= 1 << bit
+                    b |= 1 << (7 - bit)
             out[idx] = b
             idx += 1
 
