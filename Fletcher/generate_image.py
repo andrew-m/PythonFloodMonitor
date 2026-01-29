@@ -25,6 +25,8 @@ def main() -> int:
     json_path = os.path.join(out_dir, "latest.json")
     png_path = os.path.join(out_dir, "latest.png")
     bin_path = os.path.join(out_dir, "latest.bin")
+    png_3c_path = os.path.join(out_dir, "latest_3c.png")
+    bin_3c_path = os.path.join(out_dir, "latest_3c.bin")
 
     with open(json_path, "wb") as f:
         f.write(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
@@ -37,9 +39,19 @@ def main() -> int:
     with open(bin_path, "wb") as f:
         f.write(bin_bytes)
 
+    png_3c_bytes = render_image.render_latest_3color_png(payload)
+    with open(png_3c_path, "wb") as f:
+        f.write(png_3c_bytes)
+
+    bin_3c_bytes = render_image.render_latest_3color_bin(payload)
+    with open(bin_3c_path, "wb") as f:
+        f.write(bin_3c_bytes)
+
     print(json_path)
     print(png_path)
     print(bin_path)
+    print(png_3c_path)
+    print(bin_3c_path)
     return 0
 
 

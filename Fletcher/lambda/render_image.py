@@ -36,7 +36,7 @@ def _load_label_font(size: int = 16):
         return ImageFont.load_default()
 
 
-def _draw_large_height(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont", value_m: float, decimal_x: int, y: int):
+def _draw_large_height(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont", value_m: float, decimal_x: int, y: int, color: str):
     s = f"{float(value_m):.2f}"
     if "." in s:
         int_part, frac_part = s.split(".", 1)
@@ -51,9 +51,9 @@ def _draw_large_height(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont",
         int_w = font.getlength(int_part)
         dot_w = font.getlength(dot)
 
-    draw.text((decimal_x - int_w, y), int_part, fill="black", font=font)
-    draw.text((decimal_x, y), dot, fill="black", font=font)
-    draw.text((decimal_x + dot_w, y), frac_part, fill="black", font=font)
+    draw.text((decimal_x - int_w, y), int_part, fill=color, font=font)
+    draw.text((decimal_x, y), dot, fill=color, font=font)
+    draw.text((decimal_x + dot_w, y), frac_part, fill=color, font=font)
 
 
 def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont", station: dict, x0: int, y0: int):
@@ -152,12 +152,18 @@ def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont"
             if bar_h == 0:
                 continue
 
-            draw.line([(x, base_y), (x, base_y - bar_h)], fill="black", width=1)
+            # Use red if value >= top_of_normal_range
+            color = "black"
+            if isinstance(top_of_normal_range_m, (int, float)) and v >= top_of_normal_range_m:
+                color = "red"
+
+            draw.line([(x, base_y), (x, base_y - bar_h)], fill=color, width=1)
 
     return title_h + graph_height + label_h
 
 
 def _render_latest_image(river_doc: dict) -> "Image.Image":
+    """Generate 3-color image with red elements when river >= top_of_normal_range."""
     img = Image.new("RGB", (400, 300), "white")
     draw = ImageDraw.Draw(img)
     label_font = _load_label_font(8)
@@ -224,7 +230,14 @@ def _render_latest_image(river_doc: dict) -> "Image.Image":
                 pass
 
             draw.text((decimal_x - 25, y0 + 28), short_0, fill="black", font=station_font)
-            _draw_large_height(draw, large_font, float(heights_0[-1]), decimal_x=decimal_x, y=y0 + 48)
+            
+            # Use red for height label if value >= top_of_normal_range
+            height_color = "black"
+            top_of_normal = stations[0].get("top_of_normal_range_m")
+            if isinstance(top_of_normal, (int, float)) and float(heights_0[-1]) >= top_of_normal:
+                height_color = "red"
+            
+            _draw_large_height(draw, large_font, float(heights_0[-1]), decimal_x=decimal_x, y=y0 + 48, color=height_color)
 
             try:
                 if old_fontmode is not None:
@@ -247,7 +260,14 @@ def _render_latest_image(river_doc: dict) -> "Image.Image":
                 pass
 
             draw.text((decimal_x - 25, y0 + 28), short_1, fill="black", font=station_font)
-            _draw_large_height(draw, large_font, float(heights_1[-1]), decimal_x=decimal_x, y=y0 + 48)
+            
+            # Use red for height label if value >= top_of_normal_range
+            height_color = "black"
+            top_of_normal = stations[1].get("top_of_normal_range_m")
+            if isinstance(top_of_normal, (int, float)) and float(heights_1[-1]) >= top_of_normal:
+                height_color = "red"
+            
+            _draw_large_height(draw, large_font, float(heights_1[-1]), decimal_x=decimal_x, y=y0 + 48, color=height_color)
 
             try:
                 if old_fontmode is not None:
@@ -258,16 +278,48 @@ def _render_latest_image(river_doc: dict) -> "Image.Image":
     return img
 
 
-def render_latest_png(river_doc: dict) -> bytes:
+def render_latest_3color_png(river_doc: dict) -> bytes:
+    """Generate 3-color PNG with red elements."""
     img = _render_latest_image(river_doc)
     out = io.BytesIO()
     img.save(out, format="PNG")
     return out.getvalue()
 
 
+def render_latest_png(river_doc: dict) -> bytes:
+    """Generate 2-color PNG by converting 3-color image to black & white.
+    
+    Red pixels are converted to black for 2-color displays.
+    """
+    img_3color = _render_latest_image(river_doc)
+    width, height = img_3color.size
+    img_bw = Image.new("RGB", (width, height), "white")
+    pixels_3color = img_3color.load()
+    pixels_bw = img_bw.load()
+    
+    for y in range(height):
+        for x in range(width):
+            r, g, b = pixels_3color[x, y]
+            # Check if pixel is red (high red, low green/blue) or black
+            is_red = (r > 200 and g < 100 and b < 100)
+            is_black = (r < 100 and g < 100 and b < 100)
+            
+            if is_red or is_black:
+                # Convert red and black to black
+                pixels_bw[x, y] = (0, 0, 0)
+            else:
+                # Keep white as white
+                pixels_bw[x, y] = (255, 255, 255)
+    
+    out = io.BytesIO()
+    img_bw.save(out, format="PNG")
+    return out.getvalue()
+
+
 def render_latest_mono_hlsb_black(river_doc: dict) -> bytes:
-    img = _render_latest_image(river_doc)
-    mono = img.convert("1", dither=Image.Dither.NONE)
+    """Generate 2-color framebuffer by converting 3-color image to black & white."""
+    img_3color = _render_latest_image(river_doc)
+    mono = img_3color.convert("1", dither=Image.Dither.NONE)
     width, height = mono.size
     if width != 400 or height != 300:
         raise ValueError(f"Expected 400x300 image, got {width}x{height}")
@@ -288,3 +340,56 @@ def render_latest_mono_hlsb_black(river_doc: dict) -> bytes:
             idx += 1
 
     return bytes(out)
+
+
+def render_latest_3color_bin(river_doc: dict) -> bytes:
+    """Generate 3-color framebuffer: 15000 bytes black plane + 15000 bytes red plane.
+    
+    Total: 30000 bytes for 400x300 display with black and red channels.
+    """
+    img = _render_latest_image(river_doc)
+    width, height = img.size
+    if width != 400 or height != 300:
+        raise ValueError(f"Expected 400x300 image, got {width}x{height}")
+
+    pixels = img.load()
+    black_plane = bytearray((width * height) // 8)
+    red_plane = bytearray((width * height) // 8)
+
+    idx = 0
+    for y in range(height):
+        for x_byte in range(0, width, 8):
+            black_byte = 0
+            red_byte = 0
+            for bit in range(8):
+                x = x_byte + bit
+                r, g, b = pixels[x, y]
+                
+                # Check if pixel is red (high red, low green/blue)
+                is_red = (r > 200 and g < 100 and b < 100)
+                # Check if pixel is black (all channels low)
+                is_black = (r < 100 and g < 100 and b < 100)
+                
+                # White pixel: bit = 1 in both planes
+                # Black pixel: bit = 0 in black plane, bit = 1 in red plane
+                # Red pixel: bit = 1 in black plane, bit = 0 in red plane
+                
+                if not is_black and not is_red:
+                    # White: set both bits
+                    black_byte |= 1 << (7 - bit)
+                    red_byte |= 1 << (7 - bit)
+                elif is_red:
+                    # Red: set black bit, clear red bit
+                    black_byte |= 1 << (7 - bit)
+                    # red_byte bit stays 0
+                else:
+                    # Black: clear black bit, set red bit
+                    # black_byte bit stays 0
+                    red_byte |= 1 << (7 - bit)
+            
+            black_plane[idx] = black_byte
+            red_plane[idx] = red_byte
+            idx += 1
+
+    # Concatenate black plane followed by red plane
+    return bytes(black_plane + red_plane)

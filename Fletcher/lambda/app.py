@@ -19,6 +19,8 @@ def handler(event, context):
     json_key = f"{key_prefix}walking-skeleton/latest.json"
     png_key = f"{key_prefix}walking-skeleton/latest.png"
     bin_key = f"{key_prefix}walking-skeleton/latest.bin"
+    png_3c_key = f"{key_prefix}walking-skeleton/latest_3c.png"
+    bin_3c_key = f"{key_prefix}walking-skeleton/latest_3c.bin"
 
     s3 = boto3.client("s3")
     s3.put_object(
@@ -44,6 +46,22 @@ def handler(event, context):
         ContentType="application/octet-stream",
     )
 
+    png_3c_bytes = render_image.render_latest_3color_png(payload)
+    s3.put_object(
+        Bucket=bucket_name,
+        Key=png_3c_key,
+        Body=png_3c_bytes,
+        ContentType="image/png",
+    )
+
+    bin_3c_bytes = render_image.render_latest_3color_bin(payload)
+    s3.put_object(
+        Bucket=bucket_name,
+        Key=bin_3c_key,
+        Body=bin_3c_bytes,
+        ContentType="application/octet-stream",
+    )
+
     return {
         "statusCode": 200,
         "body": json.dumps(
@@ -53,6 +71,8 @@ def handler(event, context):
                     "json_key": json_key,
                     "png_key": png_key,
                     "bin_key": bin_key,
+                    "png_3c_key": png_3c_key,
+                    "bin_3c_key": bin_3c_key,
                 },
                 **payload,
             }

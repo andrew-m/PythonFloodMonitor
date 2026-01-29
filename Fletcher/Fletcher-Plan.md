@@ -103,3 +103,12 @@ The Terraform configuration includes:
 - `aws_cloudwatch_event_rule` with the schedule
 - `aws_cloudwatch_event_target` pointing to the Fletcher Lambda
 - `aws_lambda_permission` allowing EventBridge to invoke the function
+
+
+## Step 6 - 3 colour displays (Black, White and Red)
+
+Fletcher should make another version of the png image, and the latest.bin image for 3 colour displays. We will then publish these as extra files in S3, something like latest_3c.png and latest_3c.bin. That way 2 colour displays only need to download (and blit) the existing 30kb of data, while 3 colour ones will download twice that much, and render some elements in Red sometimes.
+
+Mostly everything will still be black on white, however when the river level is greater than or equal to the "top of normal range" for that station, we will plot that value in red (when we're drawing our vertical lines). So if about half of a graph is above that thershold, that half of the graph will be coloured red. Also, if the current/latest height is above the top of normal range, we will render the large height label in red (not the names or time or any other part of the display).
+
+Existing 2 colour instances of Pinky will not be affected. But we'll be able to see two versions of latest.png (latest_3c.png) and latest.bin (latest_3c.bin).
