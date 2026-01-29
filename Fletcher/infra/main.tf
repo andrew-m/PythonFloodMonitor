@@ -119,3 +119,24 @@ resource "aws_lambda_function" "fletcher" {
 
   tags = var.tags
 }
+
+resource "aws_cloudwatch_event_rule" "every_15_minutes" {
+  name                = "${var.lambda_function_name}-schedule"
+  description         = "Trigger Fletcher Lambda every 15 minutes"
+  schedule_expression = "rate(15 minutes)"
+  tags                = var.tags
+}
+
+resource "aws_cloudwatch_event_target" "lambda" {
+  rule      = aws_cloudwatch_event_rule.every_15_minutes.name
+  target_id = "FletcherLambda"
+  arn       = aws_lambda_function.fletcher.arn
+}
+
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.fletcher.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.every_15_minutes.arn
+}
