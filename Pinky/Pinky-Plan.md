@@ -16,3 +16,16 @@ Pinky is written in Micropython, runs on a Raspberry Pi Pico, and has an attache
     Documentation for the e-ink display is here: https://www.waveshare.com/wiki/Pico-ePaper-4.2- B (look down for the "Micropython series")
     But easier to just adapt and copy the open source example. @WaveshareExampleCode/Pico-ePaper-4.2-B.py
 
+
+## Notes / gotchas (display buffer semantics)
+
+The Waveshare 4.2" B/W/Red driver transmits the red plane with an inversion (`~redImage[...]`) when sending bytes to the display.
+
+This means the "obvious" framebuffer conventions are flipped for the red plane:
+- Clearing the red buffer to `0xFF` will often produce a full red screen.
+- To clear the display to no-red, the red framebuffer must be filled with `0x00`.
+- To draw red pixels/text into the red framebuffer, use `0xFF` for the draw colour.
+
+We fixed this in `pinky_display.py` by using:
+- `imagered.fill(0x00)` in `clear()`
+- `imagered.text(..., 0xFF)` in `text_red()`

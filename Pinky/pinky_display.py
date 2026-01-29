@@ -7,13 +7,13 @@ class PinkyDisplay:
 
     def clear(self):
         self._epd.imageblack.fill(0xFF)
-        self._epd.imagered.fill(0xFF)
+        self._epd.imagered.fill(0x00)
 
     def text_black(self, text, x, y):
         self._epd.imageblack.text(text, x, y, 0x00)
 
     def text_red(self, text, x, y):
-        self._epd.imagered.text(text, x, y, 0x00)
+        self._epd.imagered.text(text, x, y, 0xFF)
 
     def show(self):
         self._epd.EPD_4IN2B_Display(self._epd.buffer_black, self._epd.buffer_red)
