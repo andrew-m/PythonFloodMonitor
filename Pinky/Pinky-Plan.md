@@ -66,6 +66,30 @@ When `FRAMEBUFFER_SOURCE = "wifi"`, Pinky:
 ### Framebuffer format
 Fletcher's `latest.bin` is exactly 15000 bytes (400×300÷8) in `MONO_HLSB` format, matching the Waveshare driver's black plane buffer. Pinky loads it directly via `set_black_framebuffer_bytes()` with no decoding needed.
 
+### Scheduled mode (WiFi only)
+
+When `SCHEDULED_MODE = True` in `config.py`, Pinky runs in a continuous loop checking for updates every `SCHEDULE_CHECK_INTERVAL_S` seconds (default: 5 minutes).
+
+**Why 5 minutes instead of 15?**
+With uncoordinated schedules between the Environment Agency website, Fletcher (15-min updates), and Pinky, data could be up to 30 minutes stale in the worst case. By checking more frequently, we reduce this cumulative delay.
+
+**Smart conditional fetching:**
+1. On first run: fetch data normally, save `Last-Modified` header in memory
+2. On subsequent checks:
+   - Connect to WiFi
+   - Send HTTP HEAD request to `FLETCHER_LATEST_BIN_URL`
+   - Compare current `Last-Modified` with in-memory timestamp
+   - If unchanged: disconnect and skip download (saves bandwidth/power)
+   - If changed: fetch full data, update display, save new timestamp in memory
+3. Sleep until next check interval
+
+This approach is polite (HEAD request is tiny) and efficient (only downloads when data actually changes).
+
+**Note**: The timestamp is kept in memory only, not written to flash. This avoids flash wear from frequent writes (every 15 minutes would add up over time). On power loss/restart, Pinky will fetch fresh data anyway since the display is cleared during startup debug.
+
+**One-shot mode:**
+Set `SCHEDULED_MODE = False` for testing or manual operation. Pinky will fetch once, display, and exit.
+
 ## Step 3, startup debug display.
 
 Bearing in mind the Waveshare display takes more than 15 seconds to update, it would still be useful to display some debugging information on startup.
