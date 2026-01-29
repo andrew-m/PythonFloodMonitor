@@ -29,3 +29,15 @@ This means the "obvious" framebuffer conventions are flipped for the red plane:
 We fixed this in `pinky_display.py` by using:
 - `imagered.fill(0x00)` in `clear()`
 - `imagered.text(..., 0xFF)` in `text_red()`
+
+
+## On startup - display some debugging information.
+
+Bearing in mind the Waveshare display takes more than 15 seconds to update, it would still be useful to display some debugging information on startup.
+So, when main.py first runs, it should go about it's business as it does now, reading all the config files, desciding if it's going to use a local file or connect to the web. Even connecting to the web or reading that file.
+Then before it updates the screen with the bytes, it shoudl first display debug information as simple text to the screen (using the default framebuf routine and font is fine, I can find examples if needed). If there have been any errors, reading config, loading local files, connecting to wifi, or fetching the data, then those errors should be displayed. DO NOT DISPLAY THE WIFI PASSWORD, as that's obviously a secret. It is OK to display the wifi network SSID.
+This should be written to the display, and then a 60 second delay.
+
+Once the 60 second delay is over, and assuming there were no errors, display the actual data on the screen as normal.
+If there was an error, simply leave the display with the debug information.
+

@@ -27,3 +27,6 @@ venv/
 # Lambda layer build artifacts
 Fletcher/infra/layers/pillow/python/
 Fletcher/infra/build/
+
+# Pinky secrets (WiFi credentials, etc.)
+Pinky/secrets.py
