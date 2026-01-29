@@ -59,6 +59,7 @@ def _draw_large_height(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont",
 def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont", station: dict, x0: int, y0: int):
     heights = station.get("heights_m") or []
     y_axis_top_m = station.get("y_axis_top_m")
+    y_axis_bottom_m = station.get("y_axis_bottom_m")
     top_of_normal_range_m = station.get("top_of_normal_range_m")
     highest_ever_recorded_m = station.get("highest_ever_recorded_m")
     first_ts = station.get("first_timestamp_utc", "")
@@ -91,8 +92,16 @@ def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont"
     draw.text((x0, base_y + 2), first_label, fill="black", font=font)
     draw.text((x_axis_end - 80, base_y + 2), last_label, fill="black", font=font)
 
-    draw.text((x_axis_end + 5, base_y - 6), "0m", fill="black", font=font)
-    if isinstance(y_axis_top_m, (int, float)) and y_axis_top_m > 0:
+    if not isinstance(y_axis_bottom_m, (int, float)):
+        y_axis_bottom_m = 0.0
+
+    if (
+        isinstance(y_axis_top_m, (int, float))
+        and isinstance(y_axis_bottom_m, (int, float))
+        and y_axis_top_m > y_axis_bottom_m
+    ):
+        y_range = float(y_axis_top_m) - float(y_axis_bottom_m)
+        draw.text((x_axis_end + 5, base_y - 6), f"{float(y_axis_bottom_m):g}m", fill="black", font=font)
         draw.text((x_axis_end + 5, top_y - 6), f"{y_axis_top_m:g}m", fill="black", font=font)
 
         def draw_ref_line(value_m, label: str):
@@ -101,7 +110,7 @@ def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont"
             if value_m < 0:
                 return
 
-            y = base_y - int(round((float(value_m) / float(y_axis_top_m)) * graph_height))
+            y = base_y - int(round(((float(value_m) - float(y_axis_bottom_m)) / y_range) * graph_height))
             if y < top_y:
                 y = top_y
             if y > base_y:
@@ -121,7 +130,13 @@ def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont"
     except Exception:
         pass
 
-    if isinstance(y_axis_top_m, (int, float)) and y_axis_top_m > 0 and len(heights) == 200:
+    if (
+        isinstance(y_axis_top_m, (int, float))
+        and isinstance(y_axis_bottom_m, (int, float))
+        and y_axis_top_m > y_axis_bottom_m
+        and len(heights) == 200
+    ):
+        y_range = float(y_axis_top_m) - float(y_axis_bottom_m)
         for i, h in enumerate(heights):
             x = x0 + 1 + i
             try:
@@ -129,7 +144,7 @@ def _draw_station_graph(draw: "ImageDraw.ImageDraw", font: "ImageFont.ImageFont"
             except Exception:
                 continue
 
-            bar_h = int(round((v / float(y_axis_top_m)) * graph_height))
+            bar_h = int(round(((v - float(y_axis_bottom_m)) / y_range) * graph_height))
             if bar_h < 0:
                 bar_h = 0
             if bar_h > graph_height:

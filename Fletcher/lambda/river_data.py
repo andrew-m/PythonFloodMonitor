@@ -89,6 +89,7 @@ def build_river_level_document(stations, threshold: int = 200):
             "url": url,
             "top_of_normal_range_m": station.get("top_of_normal_range_m"),
             "highest_ever_recorded_m": station.get("highest_ever_recorded_m"),
+            "y_axis_bottom_m": station.get("y_axis_bottom_m"),
             "y_axis_top_m": station.get("y_axis_top_m"),
             "first_timestamp_utc": first_ts.isoformat(),
             "last_timestamp_utc": last_ts.isoformat(),
