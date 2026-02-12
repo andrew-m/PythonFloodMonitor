@@ -69,9 +69,17 @@ def _load_framebuffer_bytes(debug_log: list) -> bytes:
         debug_log.append("Connected")
         
         try:
-            url = getattr(config, "FLETCHER_LATEST_BIN_URL", "")
-            if not url:
-                raise ValueError("FLETCHER_LATEST_BIN_URL not set")
+            use_3color = getattr(config, "USE_3COLOR", False)
+            if use_3color:
+                url = getattr(config, "FLETCHER_LATEST_3C_BIN_URL", "")
+                if not url:
+                    raise ValueError("FLETCHER_LATEST_3C_BIN_URL not set")
+                debug_log.append("Mode: 3-color")
+            else:
+                url = getattr(config, "FLETCHER_LATEST_BIN_URL", "")
+                if not url:
+                    raise ValueError("FLETCHER_LATEST_BIN_URL not set")
+                debug_log.append("Mode: 2-color")
             debug_log.append("URL: {}".format(url))
             
             debug_log.append("Fetching...")
@@ -116,7 +124,11 @@ def _run_once(display: PinkyDisplay, last_modified: str, show_debug: bool = True
     if source == "wifi":
         import secrets
         
-        url = getattr(config, "FLETCHER_LATEST_BIN_URL", "")
+        use_3color = getattr(config, "USE_3COLOR", False)
+        if use_3color:
+            url = getattr(config, "FLETCHER_LATEST_3C_BIN_URL", "")
+        else:
+            url = getattr(config, "FLETCHER_LATEST_BIN_URL", "")
         
         if last_modified and url:
             debug_log.append("Checking for updates...")
@@ -126,21 +138,38 @@ def _run_once(display: PinkyDisplay, last_modified: str, show_debug: bool = True
             
             if ssid and password:
                 try:
-                    if connect_wifi(ssid, password):
-                        debug_log.append("Connected")
+                    connected = False
+                    try:
+                        connected = bool(connect_wifi(ssid, password))
+                    except Exception as e:
+                        debug_log.append("WiFi connect exception: {}: {}".format(type(e).__name__, str(e)))
+	
+                    if connected:
                         try:
-                            has_changed, new_timestamp = _check_if_updated(url, last_modified)
+                            try:
+                                has_changed, new_timestamp = _check_if_updated(url, last_modified)
+                                debug_log.append("HEAD: changed={}".format(has_changed))
+                                if new_timestamp:
+                                    debug_log.append("HEAD: Last-Modified present")
+                            except Exception as e:
+                                debug_log.append("HEAD exception: {}: {}".format(type(e).__name__, str(e)))
+                                raise
+	
                             if not has_changed:
-                                disconnect_wifi()
+                                debug_log.append("No update")
                                 return (True, last_modified)
-                            debug_log.append("Update available")
                             if new_timestamp:
                                 new_last_modified = new_timestamp
                         finally:
-                            disconnect_wifi()
-                except Exception:
-                    pass
-    
+                            try:
+                                disconnect_wifi()
+                            except Exception as e:
+                                debug_log.append("WiFi disconnect exception: {}: {}".format(type(e).__name__, str(e)))
+                    else:
+                        debug_log.append("WiFi: connect failed")
+                except Exception as e:
+                    debug_log.append("Update-check exception: {}: {}".format(type(e).__name__, str(e)))
+	    
     debug_log.append("Fetching data...")
     debug_log.append("")
     
@@ -153,7 +182,7 @@ def _run_once(display: PinkyDisplay, last_modified: str, show_debug: bool = True
         else:
             framebuffer_data = result
         debug_log.append("")
-        debug_log.append("Success! Update in approx 60s")
+        debug_log.append("Success! Update in approx 20s")
     except Exception as e:
         error_msg = str(e)
         debug_log.append("")
@@ -177,10 +206,14 @@ def _run_once(display: PinkyDisplay, last_modified: str, show_debug: bool = True
                 display.text_black(line, 5, y)
                 y += 10
             display.show()
-            utime.sleep_ms(60000)
+            utime.sleep_ms(20000)
         
         display.clear()
-        display.set_black_framebuffer_bytes(framebuffer_data)
+        use_3color = getattr(config, "USE_3COLOR", False)
+        if use_3color:
+            display.set_3color_framebuffer_bytes(framebuffer_data)
+        else:
+            display.set_black_framebuffer_bytes(framebuffer_data)
         display.show()
         return (True, new_last_modified)
     
@@ -211,7 +244,7 @@ def main():
             display.sleep()
             break
         
-        utime.sleep(check_interval_s)
+        utime.sleep_ms(check_interval_s * 1000)
 
 
 main()

@@ -103,8 +103,8 @@ resource "aws_lambda_function" "fletcher" {
     aws_lambda_layer_version.pillow.arn
   ]
 
-  timeout     = 10
-  memory_size = 128
+  timeout     = 30
+  memory_size = 256
 
   environment {
     variables = {

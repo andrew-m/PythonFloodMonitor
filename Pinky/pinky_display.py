@@ -21,6 +21,20 @@ class PinkyDisplay:
         self._epd.buffer_black[:] = buf
         self._epd.buffer_red[:] = b"\x00" * len(self._epd.buffer_red)
 
+    def set_3color_framebuffer_bytes(self, buf: bytes):
+        """Set both black and red framebuffer planes from a single buffer.
+        
+        Buffer format: first 15000 bytes = black plane, next 15000 bytes = red plane.
+        Total expected size: 30000 bytes for 400x300 display.
+        """
+        expected_size = len(self._epd.buffer_black) + len(self._epd.buffer_red)
+        if len(buf) != expected_size:
+            raise ValueError(f"Expected {expected_size} bytes for 3-color framebuffer, got {len(buf)}")
+        
+        black_size = len(self._epd.buffer_black)
+        self._epd.buffer_black[:] = buf[:black_size]
+        self._epd.buffer_red[:] = buf[black_size:]
+
     def show(self):
         self._epd.EPD_4IN2B_Display(self._epd.buffer_black, self._epd.buffer_red)
 

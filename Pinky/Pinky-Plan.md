@@ -102,3 +102,49 @@ When `main.py` runs, it:
 5. If error: leaves the debug info on screen and sleeps
 
 **Security**: WiFi password is never displayed (shown as `[set]`). SSID and other safe info is shown to aid debugging.
+
+## Step 4: Support for 2 and 3 colour displays
+
+Pinky now supports both 2-color (black/white) and 3-color (black/white/red) displays via configuration.
+
+### Configuration
+
+`config.py` includes:
+- `USE_3COLOR` - set to `True` for 3-color display, `False` for 2-color display
+- `FLETCHER_LATEST_BIN_URL` - S3 URL for 2-color framebuffer (15,000 bytes)
+- `FLETCHER_LATEST_3C_BIN_URL` - S3 URL for 3-color framebuffer (30,000 bytes)
+
+### Implementation
+
+**2-color mode (`USE_3COLOR = False`):**
+- Fetches `latest.bin` (15,000 bytes)
+- Loads black plane only via `set_black_framebuffer_bytes()`
+- Red plane is cleared to `0x00` (no red pixels)
+
+**3-color mode (`USE_3COLOR = True`):**
+- Fetches `latest_3c.bin` (30,000 bytes)
+- Loads both planes via `set_3color_framebuffer_bytes()`
+- First 15,000 bytes → black plane
+- Next 15,000 bytes → red plane
+
+### Display method: `set_3color_framebuffer_bytes()`
+
+Added to `pinky_display.py` to handle 3-color framebuffer format:
+```python
+def set_3color_framebuffer_bytes(self, buf: bytes):
+    expected_size = len(self._epd.buffer_black) + len(self._epd.buffer_red)
+    if len(buf) != expected_size:
+        raise ValueError(f"Expected {expected_size} bytes")
+    
+    black_size = len(self._epd.buffer_black)
+    self._epd.buffer_black[:] = buf[:black_size]
+    self._epd.buffer_red[:] = buf[black_size:]
+```
+
+### Behavior
+
+The mode selection is checked in two places:
+1. **URL selection** - determines which binary file to fetch from Fletcher
+2. **Display method** - determines how to load the framebuffer bytes
+
+Both scheduled mode and one-shot mode work with either 2-color or 3-color displays. The smart conditional fetching (HTTP HEAD check) uses the appropriate URL based on the `USE_3COLOR` setting.

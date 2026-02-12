@@ -370,22 +370,23 @@ def render_latest_3color_bin(river_doc: dict) -> bytes:
                 # Check if pixel is black (all channels low)
                 is_black = (r < 100 and g < 100 and b < 100)
                 
-                # White pixel: bit = 1 in both planes
-                # Black pixel: bit = 0 in black plane, bit = 1 in red plane
-                # Red pixel: bit = 1 in black plane, bit = 0 in red plane
+                # Note: Waveshare driver inverts red plane with ~redImage[...] on transmit
+                # So we need to invert our encoding:
+                # - White: black=1, red=0 (driver inverts red to 1 = no red shown)
+                # - Black: black=0, red=0 (driver inverts red to 1 = no red shown)
+                # - Red:   black=1, red=1 (driver inverts red to 0 = red shown)
                 
                 if not is_black and not is_red:
-                    # White: set both bits
-                    black_byte |= 1 << (7 - bit)
-                    red_byte |= 1 << (7 - bit)
-                elif is_red:
-                    # Red: set black bit, clear red bit
+                    # White: set black bit, clear red bit
                     black_byte |= 1 << (7 - bit)
                     # red_byte bit stays 0
-                else:
-                    # Black: clear black bit, set red bit
-                    # black_byte bit stays 0
+                elif is_red:
+                    # Red: set both bits (driver will invert red to show red)
+                    black_byte |= 1 << (7 - bit)
                     red_byte |= 1 << (7 - bit)
+                else:
+                    # Black: clear both bits (both stay 0)
+                    pass
             
             black_plane[idx] = black_byte
             red_plane[idx] = red_byte
