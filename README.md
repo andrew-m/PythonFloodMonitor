@@ -6,9 +6,9 @@ PythonFloodMonitor fetches UK Environment Agency river level data, renders it in
 
 ## This was a fun learning project
 
-I've had this project on a back burner for a couple of years, never quite getting it to work. I Don't really know python very well, the Pico would keep running out of memory, and then Summer woudl come and the flood risk passes - so I would lose interest.
+I've had this project on a back burner for a couple of years, never quite getting it to work. I don't really know python very well, the Pico would keep running out of memory, and then Summer would come and the flood risk passes - so I would lose interest.
 
-Two key changes finally got me over the line to a vaguely working project. A colleage advised me to do all the heavy liftin and data processing in an AWS lambda - and keep the pico code to the bare-minimum, just rendering an image to the display.
+Two key changes finally got me over the line to a vaguely working project. A colleage advised me to do all the heavy lifting and data processing in an AWS lambda - and keep the pico code to the bare-minimum, just rendering an image to the display.
 The other key change was that I needed a learning project to play with AI code. So this version of the project was built from scratch using Windsurf. I'm not sure which models (they keep changing) but most recently GPT-5.2 and claude Sonnet 4.5.
 
 ### Here be Dragons
@@ -16,7 +16,7 @@ The other key change was that I needed a learning project to play with AI code. 
 I don't know Terraform - and while I'm relatively confident, there is a risk that this code could do bad, and expensive, things in your AWS account. Proceed at your own risk. (If you know what you're doing and have feedback about anything stupid and/or dangerous I've done - please let me know or submit a PR).
 
 ### Play along at home
-If you'd like to make your own display at home, the two displays I've tested this with are the waveshare 4.2" e-ink. In the UK, you can get them from The Pi Hut - but they're probably also available from ebay, Amazon marketplace etc: 
+If you'd like to make one at home, the two displays I've tested this with are the waveshare 4.2" e-ink. In the UK, you can get them from The Pi Hut - but they're probably also available from ebay, Amazon marketplace etc: 
 
 [The Pi Hut - 4.2" ePaper Display Module for Raspberry Pi Pico - Black/White](https://thepihut.com/products/4-2-e-paper-display-module-for-raspberry-pi-pico-black-white-400x300).
 
@@ -24,21 +24,23 @@ If you'd like to make your own display at home, the two displays I've tested thi
 
 You'll also need a Raspberry Pi Pico WH (the one with Wifi, and header-pins soldered on).
 
+If you know what you are doing, you could probably adapt this code quite easily to work with any display that uses a Micropython framebuffer.
+
 ## How it works
 
 This repo has two main components:
 
-- **Fletcher** (`Fletcher/` - the Flood Data Fetcher)
+- **Fletcher** (Flood Data Fetcher)
   - AWS Lambda that fetches river level data and processes it in a few ways:
-    - IT resamples about 420 datapoints into exactly 200 using the excellently names "Three buckets largest triangle" algorithm.
-    - It then aggregates all of the relevant data into a JSON file.
-    - It then renders an image for that data as a black and white (no grey) png, and a black red and white png.
-    - Finally, it renders a binary framebuffer for that data, both 2-colour (black/white) and 3-colour (black/white/red), which is simple to blit straight to the e-ink display later.
+    - Resamples about 420 datapoints into exactly 200 using the excellently names "Three buckets largest triangle" algorithm.
+    - Aggregates all of the relevant data into a JSON file.
+    - Renders an image for that data as a black and white (no grey) png, and a black red and white png.
+    - Renders a binary byte array for that data, both 2-colour (black/white) and 3-colour (black/white/red), which is simple to blit straight to the e-ink display later (ie a Micropython framebuffer).
     - All of these are published to S3.
 
   - Runs on a 15-minute schedule in AWS (EventBridge).
 
-- **Pinky** (`Pinky/` The Pico E-Ink Display)
+- **Pinky** (Pico E-Ink Display)
   - MicroPython app for Raspberry Pi Pico W + Waveshare 4.2" e-ink.
   - Fetches the framebuffer binary from the public URL and displays it.
   - Supports:
