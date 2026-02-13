@@ -15,6 +15,15 @@ The other key change was that I needed a learning project to play with AI code. 
 
 I don't know Terraform - and while I'm relatively confident, there is a risk that this code could do bad, and expensive, things in your AWS account. Proceed at your own risk. (If you know what you're doing and have feedback about anything stupid and/or dangerous I've done - please let me know or submit a PR).
 
+### Play along at home
+If you'd like to make your own display at home, the two displays I've tested this with are the waveshare 4.2" e-ink. In the UK, you can get them from The Pi Hut - but they're probably also available from ebay, Amazon marketplace etc: 
+
+[The Pi Hut - 4.2" ePaper Display Module for Raspberry Pi Pico - Black/White](https://thepihut.com/products/4-2-e-paper-display-module-for-raspberry-pi-pico-black-white-400x300).
+
+[The Pi Hut - 4.2" ePaper Display Module for Raspberry Pi Pico - Red/Black/White](https://thepihut.com/products/4-2-e-paper-display-module-for-raspberry-pi-pico-red-black-white-400x300?variant=40874935222467).
+
+You'll also need a Raspberry Pi Pico WH (the one with Wifi, and header-pins soldered on).
+
 ## How it works
 
 This repo has two main components:
