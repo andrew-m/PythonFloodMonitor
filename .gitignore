@@ -30,3 +30,4 @@ Fletcher/infra/build/
 
 # Pinky secrets (WiFi credentials, etc.)
 Pinky/secrets.py
+Pinky/config.py

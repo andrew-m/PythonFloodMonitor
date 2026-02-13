@@ -1,0 +1,16 @@
+# Set to True to use 3-color display (black, white, red)
+# Set to False to use 2-color display (black, white only)
+USE_3COLOR = True
+
+FLETCHER_WALKING_SKELETON_URL = "https://www.example.com/fletcher/prod/walking-skeleton/latest.json"
+
+FLETCHER_LATEST_BIN_URL = "https://www.example.com/fletcher/prod/walking-skeleton/latest.bin"
+FLETCHER_LATEST_3C_BIN_URL = "https://www.example.com/fletcher/prod/walking-skeleton/latest_3c.bin"
+
+FRAMEBUFFER_SOURCE = "wifi"
+LOCAL_FRAMEBUFFER_FILENAME = "example_bw.bin"
+
+# Scheduled mode: if True, run in a loop checking every SCHEDULE_CHECK_INTERVAL_S
+# If False, run once and exit (useful for testing)
+SCHEDULED_MODE = True
+SCHEDULE_CHECK_INTERVAL_S = 5 * 60  # 5 minutes
