@@ -4,11 +4,22 @@ PythonFloodMonitor fetches UK Environment Agency river level data, renders it in
 
 ![Pinky on e-ink display](e-InkRiverLevels.jpg)
 
+## This was a fun learning project
+
+I've had this project on a back burner for a couple of years, never quite getting it to work. I Don't really know python very well, the Pico would keep running out of memory, and then Summer woudl come and the flood risk passes - so I would lose interest.
+
+Two key changes finally got me over the line to a vaguely working project. A colleage advised me to do all the heavy liftin and data processing in an AWS lambda - and keep the pico code to the bare-minimum, just rendering an image to the display.
+The other key change was that I needed a learning project to play with AI code. So this version of the project was built from scratch using Windsurf. I'm not sure which models (they keep changing) but most recently GPT-5.2 and claude Sonnet 4.5.
+
+### Here be Dragons
+
+I don't know Terraform - and while I'm relatively confident, there is a risk that this code could do bad, and expensive, things in your AWS account. Proceed at your own risk. (If you know what you're doing and have feedback about anything stupid and/or dangerous I've done - please let me know or submit a PR).
+
 ## How it works
 
 This repo has two main components:
 
-- **Fletcher** (`Fletcher/`)
+- **Fletcher** (`Fletcher/` - the Flood Data Fetcher)
   - AWS Lambda that fetches river level data and processes it in a few ways:
     - IT resamples about 420 datapoints into exactly 200 using the excellently names "Three buckets largest triangle" algorithm.
     - It then aggregates all of the relevant data into a JSON file.
@@ -18,7 +29,7 @@ This repo has two main components:
 
   - Runs on a 15-minute schedule in AWS (EventBridge).
 
-- **Pinky** (`Pinky/`)
+- **Pinky** (`Pinky/` The Pico E-Ink Display)
   - MicroPython app for Raspberry Pi Pico W + Waveshare 4.2" e-ink.
   - Fetches the framebuffer binary from the public URL and displays it.
   - Supports:
