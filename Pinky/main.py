@@ -5,6 +5,14 @@ from pinky_display import PinkyDisplay
 from wifi_helper import connect_wifi, disconnect_wifi
 
 
+def _debug_tail(lines: list, max_lines: int) -> list:
+    if max_lines <= 0:
+        return []
+    if len(lines) <= max_lines:
+        return lines
+    return lines[-max_lines:]
+
+
 def _check_if_updated(url: str, last_modified: str) -> tuple:
     """Check if URL has been modified since last_modified timestamp using HTTP HEAD.
     
@@ -52,6 +60,7 @@ def _load_framebuffer_bytes(debug_log: list) -> bytes:
     if source == "wifi":
         import secrets
         import urequests
+        import gc
         
         ssid = getattr(secrets, "WIFI_SSID", "")
         if not ssid:
@@ -67,6 +76,14 @@ def _load_framebuffer_bytes(debug_log: list) -> bytes:
         if not connect_wifi(ssid, password):
             raise RuntimeError("Failed to connect to WiFi")
         debug_log.append("Connected")
+        try:
+            gc.collect()
+        except Exception:
+            pass
+        try:
+            debug_log.append("mem_free: {}".format(gc.mem_free()))
+        except Exception:
+            pass
         
         try:
             use_3color = getattr(config, "USE_3COLOR", False)
@@ -83,14 +100,30 @@ def _load_framebuffer_bytes(debug_log: list) -> bytes:
             debug_log.append("URL: {}".format(url))
             
             debug_log.append("Fetching...")
-            resp = urequests.get(url)
+            try:
+                resp = urequests.get(url)
+            except Exception as e:
+                debug_log.append("GET exception: {}: {}".format(type(e).__name__, repr(e)))
+                raise
             try:
                 status = getattr(resp, "status_code", 200)
                 debug_log.append("HTTP {}".format(status))
                 if status != 200:
                     raise ValueError("HTTP status {}".format(status))
-                data = resp.content
+                try:
+                    data = resp.content
+                except Exception as e:
+                    debug_log.append("Read content exception: {}: {}".format(type(e).__name__, repr(e)))
+                    try:
+                        debug_log.append("mem_free: {}".format(gc.mem_free()))
+                    except Exception:
+                        pass
+                    raise
                 debug_log.append("Got {} bytes".format(len(data)))
+                try:
+                    debug_log.append("mem_free: {}".format(gc.mem_free()))
+                except Exception:
+                    pass
                 
                 headers = getattr(resp, "headers", {})
                 last_modified = headers.get("Last-Modified", headers.get("last-modified", ""))
@@ -99,8 +132,8 @@ def _load_framebuffer_bytes(debug_log: list) -> bytes:
             finally:
                 try:
                     resp.close()
-                except Exception:
-                    pass
+                except Exception as e:
+                    debug_log.append("resp.close exception: {}: {}".format(type(e).__name__, repr(e)))
         finally:
             debug_log.append("Disconnecting...")
             disconnect_wifi()
@@ -123,6 +156,7 @@ def _run_once(display: PinkyDisplay, last_modified: str, show_debug: bool = True
     
     if source == "wifi":
         import secrets
+        import urequests
         
         use_3color = getattr(config, "USE_3COLOR", False)
         if use_3color:
@@ -158,8 +192,37 @@ def _run_once(display: PinkyDisplay, last_modified: str, show_debug: bool = True
                             if not has_changed:
                                 debug_log.append("No update")
                                 return (True, last_modified)
+
+                            debug_log.append("Update available")
                             if new_timestamp:
                                 new_last_modified = new_timestamp
+
+                            debug_log.append("Fetching data...")
+                            debug_log.append("")
+
+                            debug_log.append("Fetching...")
+                            try:
+                                resp = urequests.get(url)
+                            except Exception as e:
+                                debug_log.append("GET exception: {}: {}".format(type(e).__name__, repr(e)))
+                                raise
+                            try:
+                                status = getattr(resp, "status_code", 200)
+                                debug_log.append("HTTP {}".format(status))
+                                if status != 200:
+                                    raise ValueError("HTTP status {}".format(status))
+                                framebuffer_data = resp.content
+                                debug_log.append("Got {} bytes".format(len(framebuffer_data)))
+
+                                headers = getattr(resp, "headers", {})
+                                ts = headers.get("Last-Modified", headers.get("last-modified", ""))
+                                if ts:
+                                    new_last_modified = ts
+                            finally:
+                                try:
+                                    resp.close()
+                                except Exception as e:
+                                    debug_log.append("resp.close exception: {}: {}".format(type(e).__name__, repr(e)))
                         finally:
                             try:
                                 disconnect_wifi()
@@ -170,29 +233,37 @@ def _run_once(display: PinkyDisplay, last_modified: str, show_debug: bool = True
                 except Exception as e:
                     debug_log.append("Update-check exception: {}: {}".format(type(e).__name__, str(e)))
 	    
-    debug_log.append("Fetching data...")
-    debug_log.append("")
-    
-    try:
-        result = _load_framebuffer_bytes(debug_log)
-        if source == "wifi" and isinstance(result, tuple):
-            framebuffer_data, timestamp = result
-            if timestamp:
-                new_last_modified = timestamp
-        else:
-            framebuffer_data = result
+    if framebuffer_data is None:
+        debug_log.append("Fetching data...")
+        debug_log.append("")
+        
+        try:
+            result = _load_framebuffer_bytes(debug_log)
+            if source == "wifi" and isinstance(result, tuple):
+                framebuffer_data, timestamp = result
+                if timestamp:
+                    new_last_modified = timestamp
+            else:
+                framebuffer_data = result
+            debug_log.append("")
+            debug_log.append("Success! Update in approx 20s")
+        except Exception as e:
+            error_msg = str(e)
+            if not error_msg:
+                error_msg = "{}: {}".format(type(e).__name__, repr(e))
+            else:
+                error_msg = "{}: {}".format(type(e).__name__, error_msg)
+            debug_log.append("")
+            debug_log.append("ERROR:")
+            debug_log.append(error_msg)
+    else:
         debug_log.append("")
         debug_log.append("Success! Update in approx 20s")
-    except Exception as e:
-        error_msg = str(e)
-        debug_log.append("")
-        debug_log.append("ERROR:")
-        debug_log.append(error_msg)
     
     if error_msg is not None:
         display.clear()
         y = 5
-        for line in debug_log:
+        for line in _debug_tail(debug_log, 24):
             display.text_black(line, 5, y)
             y += 10
         display.show()
@@ -202,7 +273,7 @@ def _run_once(display: PinkyDisplay, last_modified: str, show_debug: bool = True
         if show_debug:
             display.clear()
             y = 5
-            for line in debug_log:
+            for line in _debug_tail(debug_log, 24):
                 display.text_black(line, 5, y)
                 y += 10
             display.show()
