@@ -1,0 +1,20 @@
+Checking for updates...
+HEAD: changed=True
+HEAD: Last-Modified present
+Fetching data...
+
+Source: wifi
+SSID: FRITZ!Box 7530 AM
+Password: [set]
+Connecting...
+Connected
+mem_free: 143248
+Mode: 3-color
+URL: https://www.warmoldhouse.uk/fletcher/prod/wa
+Fetching...
+GET exception: OSError: OSError(113,)
+Disconnecting...
+Disconnected
+
+ERROR:
+OSError: [Errno 113] EHOSTUNREACH

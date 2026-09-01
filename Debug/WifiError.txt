@@ -1,0 +1,11 @@
+Checking for updates...
+WiFi: connect failed
+Fetching data...
+
+Source: wifi
+SSID: FRITZ!Box 7530 AM
+Password: [set]
+Connecting...
+
+ERROR:
+RuntimeError: Failed to connect to WiFi

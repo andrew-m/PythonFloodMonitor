@@ -14,3 +14,5 @@ LOCAL_FRAMEBUFFER_FILENAME = "example_bw.bin"
 # If False, run once and exit (useful for testing)
 SCHEDULED_MODE = True
 SCHEDULE_CHECK_INTERVAL_S = 5 * 60  # 5 minutes
+
+ERROR_RETRY_DELAY_S = 5 * 60  # 5 minutes

@@ -297,6 +297,8 @@ def main():
     
     scheduled_mode = getattr(config, "SCHEDULED_MODE", False)
     check_interval_s = getattr(config, "SCHEDULE_CHECK_INTERVAL_S", 5 * 60)
+    error_retry_delay_s = getattr(config, "ERROR_RETRY_DELAY_S", 5 * 60)
+    current_retry_delay_s = error_retry_delay_s
     
     last_modified = ""
     
@@ -312,8 +314,21 @@ def main():
         first_run = False
         
         if not success:
-            display.sleep()
-            break
+            try:
+                display.sleep()
+            except Exception:
+                pass
+
+            utime.sleep_ms(int(current_retry_delay_s * 1000))
+            current_retry_delay_s = min(current_retry_delay_s * 2, error_retry_delay_s * 16)
+
+            display = PinkyDisplay()
+            display.clear()
+            last_modified = ""
+            first_run = True
+            continue
+        else:
+            current_retry_delay_s = error_retry_delay_s
         
         utime.sleep_ms(check_interval_s * 1000)
 

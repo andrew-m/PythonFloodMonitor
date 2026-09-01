@@ -85,6 +85,17 @@ With uncoordinated schedules between the Environment Agency website, Fletcher (1
 
 This approach is polite (HEAD request is tiny) and efficient (only downloads when data actually changes).
 
+### Error retry / recovery (scheduled mode)
+
+In scheduled mode, if a fetch or display cycle fails, Pinky:
+1. Renders the error/debug log on screen
+2. Sleeps for `ERROR_RETRY_DELAY_S`
+3. Retries with exponential backoff (up to 16× `ERROR_RETRY_DELAY_S`)
+4. Restarts as if it had rebooted (clears in-memory `Last-Modified` so the next run fetches fresh data)
+
+`config.py` includes:
+- `ERROR_RETRY_DELAY_S` - base delay before retrying after an error (default: 5 minutes)
+
 **Note**: The timestamp is kept in memory only, not written to flash. This avoids flash wear from frequent writes (every 15 minutes would add up over time). On power loss/restart, Pinky will fetch fresh data anyway since the display is cleared during startup debug.
 
 **One-shot mode:**

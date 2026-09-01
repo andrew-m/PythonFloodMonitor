@@ -1,0 +1,18 @@
+Checking for updates...
+HEAD: changed=True
+HEAD: Last-Modified present
+Fetching data...
+
+Source: wifi
+SSID: FRITZ!Box 7530 AM
+Password: [set]
+Connecting...
+Connected
+Mode: 3-color
+URL: https://www.warmoldhouse.uk/fletcher/prod/wa
+Fetching...
+Disconnecting...
+Disconnected
+
+ERROR:
+[Errno 113] EHOSTUNREACH
